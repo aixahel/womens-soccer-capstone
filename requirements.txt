@@ -5,3 +5,6 @@ pyarrow
 pyreadr
 scipy
 statsmodels
+pymannkendall
+scikit-learn
+matplotlib
