@@ -205,7 +205,7 @@ for i in range(len(cm)):
 cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 cb.set_label("Spearman ρ")
 fig.tight_layout()
-fig.savefig("figures/fig2_spearman_heatmap.png", dpi=150)
+fig.savefig("figures/fig2_spearman_heatmap.png", dpi=150, bbox_inches="tight", pad_inches=0.2)
 plt.close(fig)
 
 
@@ -349,12 +349,17 @@ plt.close(fig)
 # Figure 3b: attendance (log scale, it spans an order of magnitude)
 fig, ax = plt.subplots(figsize=(13, 5.6))
 for l in LEAGUES:
-    d = fbp_season[(fbp_season.league == l) & fbp_season.avg_attendance.notna()].sort_values("season_end_year")
+    # Reindex to every season so a season without usable attendance (NWSL 2020
+    # cancelled; 2020/21 played behind closed doors) breaks the line instead
+    # of being drawn through. Liga F never reaches 70% coverage, so it's absent.
+    d = fbp_season[(fbp_season.league == l) & fbp_season.avg_attendance.notna()]
     if len(d) == 0:
         continue
-    ax.plot(d.season_end_year, d.avg_attendance, "-o", color=LEAGUE_COLOR[l], markersize=7,
+    d = d.set_index("season_end_year").reindex(range(d.season_end_year.min(), d.season_end_year.max() + 1))
+    ax.plot(d.index, d.avg_attendance, "-o", color=LEAGUE_COLOR[l], markersize=7,
             markeredgecolor=SURFACE, markeredgewidth=2, label=l)
-    ax.annotate(l, (d.season_end_year.iloc[-1], d.avg_attendance.iloc[-1]), xytext=(8, 0),
+    last = d.avg_attendance.dropna()
+    ax.annotate(l, (last.index[-1], last.iloc[-1]), xytext=(8, 0),
                 textcoords="offset points", va="center", fontsize=13, color=INK)
 ax.set_yscale("log")
 ax.set_yticks([500, 1000, 2000, 5000, 10000])
