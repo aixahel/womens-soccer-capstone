@@ -8,3 +8,4 @@ statsmodels
 pymannkendall
 scikit-learn
 matplotlib
+xgboost
